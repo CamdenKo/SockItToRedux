@@ -143,7 +143,7 @@ describe('socketSubscriber', () => {
   })
 })
 
-describe.only('socketAjaxReducer', () => {
+describe('socketAjaxReducer', () => {
   const mockServer = io.listen(5001)
   afterAll((done) => {
     mockServer.close(done)
@@ -181,10 +181,9 @@ describe.only('socketAjaxReducer', () => {
     mockServer.on('connection', (sock) => {
       sock.on('requestJoinRoom', () => {
         sock.emit('successJoinRoom', 'data')
-        sock.removeAllListeners(['requestJoinRoom'])
-        console.log('FUCK')
       })
     })
+
     socket.on('connect', () => {
       socketSubscriber(store)(result)
       store.dispatch(result.thunk())
@@ -207,14 +206,11 @@ describe.only('socketAjaxReducer', () => {
     })
   })
   it('should dispatch ERROR_JOIN_ROOM when errorJoinRoom is emitted', (done) => {
-    const letMeDone = () => {
-      console.log('done')
-      done()
-    }
     const store = mockStore(defaultState)
     const socket = newConnection()
     const result = socketAjaxReducer(socket, 'joinRoom')
     mockServer.on('connection', (sock) => {
+      sock.removeAllListeners('requestJoinRoom')
       sock.on('requestJoinRoom', () => {
         sock.emit('errorJoinRoom', 'ouch')
       })
@@ -226,8 +222,6 @@ describe.only('socketAjaxReducer', () => {
 
     socket.on('errorJoinRoom', () => {
       shortTimeout(() => {
-        console.log(store.getActions())
-        console.log('error join room')
         expect(store.getActions()).toEqual([
           {
             type: 'LOADING_JOIN_ROOM',
@@ -237,10 +231,9 @@ describe.only('socketAjaxReducer', () => {
             err: 'ouch',
           },
         ])
-        letMeDone()
+        done()
         socket.disconnect()
       })
-      // shortTimeout(done)
     })
   })
 })
