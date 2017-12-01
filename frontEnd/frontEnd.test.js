@@ -32,16 +32,14 @@ describe('createAjaxReducer', () => {
       'reducer',
     ])
   })
-  it('actionCreators should have four functions with the appropriate names', () => {
-    expect(Object.keys(result.actionCreators)).toEqual([
+  it('actionCreators should have functions with the appropriate names', () => {
+    expect(Object.keys(result.actionCreators)).toContain(...[
       'loadingDummyFunc',
-      'doneLoadingDummyFunc',
       'errorDummyFunc',
-      'removeErrorDummyFunc',
       'dataDummyFunc',
     ])
   })
-  it('action creators should have four functions', () => {
+  it('action creators should have functions', () => {
     Object.values(result.actionCreators).forEach(fn => expect(typeof fn).toEqual('function'))
   })
   it('action creator functions should resolve to objects that all have type', () => {
@@ -53,11 +51,6 @@ describe('createAjaxReducer', () => {
   })
   describe('reducer', () => {
     const reducer = result.reducer
-    const alternativeState = {
-      ...defaultState,
-      error: new Error('oops'),
-      loading: true,
-    }
     it('should resolve to default state', () => {
       expect(reducer(undefined, {})).toEqual(defaultState)
     })
@@ -66,21 +59,23 @@ describe('createAjaxReducer', () => {
         result.actionCreators[actionCreatorNamer('loading', 'dummyFunc')](),
       )).toEqual({ ...defaultState, loading: true })
     })
-    it('should set loading to false with DONE_LOADING', () => {
-      expect(reducer(alternativeState,
-        result.actionCreators[actionCreatorNamer('doneLoading', 'dummyFunc')](),
-      )).toEqual({ ...alternativeState, loading: false })
-    })
-    it('should set error with ERROR', () => {
+    it('should set error and remove loading with ERROR', () => {
       const err = new Error('ow!')
-      expect(reducer(undefined,
+      expect(reducer({ ...defaultState, loading: true },
         result.actionCreators[actionCreatorNamer('error', 'dummyFunc')](err),
-      )).toEqual({ ...defaultState, error: err })
+      )).toEqual({ ...defaultState, error: err, loading: false })
     })
-    it('should clear error with REMOVE_ERROR', () => {
-      expect(reducer(alternativeState,
-        result.actionCreators[actionCreatorNamer('removeError', 'dummyFunc')](),
-      )).toEqual({ ...alternativeState, error: null })
+    it('should set data, remove error and remove loading with DATA', () => {
+      const err = new Error('yow!')
+      const data = 3
+      expect(reducer(
+        {
+          ...defaultState,
+          loading: true,
+          error: err,
+        },
+        result.actionCreators[actionCreatorNamer('data', 'dummyFunc')](data),
+      )).toEqual({ ...defaultState, error: null, data })
     })
   })
 })

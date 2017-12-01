@@ -1,5 +1,4 @@
 const {
-  isUppercase,
   uppify,
   actionCreatorNamer,
   requestSocketNamer,
@@ -24,31 +23,23 @@ const defaultState = {
 const createAjaxReducer = (funcName) => {
   const uppName = uppify(funcName)
   const LOADING = `LOADING_${uppName}`
-  const DONE_LOADING = `DONE_LOADING_${uppName}`
   const ERROR = `ERROR_${uppName}`
-  const REMOVE_ERROR = `REMOVE_ERROR_${uppName}`
   const DATA = `DATA_${uppName}`
 
   return {
     actionCreators: {
       [actionCreatorNamer('loading', funcName)]: () => ({ type: LOADING }),
-      [actionCreatorNamer('doneLoading', funcName)]: () => ({ type: DONE_LOADING }),
-      [actionCreatorNamer('error', funcName)]: err => ({ type: ERROR, err }),
-      [actionCreatorNamer('removeError', funcName)]: () => ({ type: REMOVE_ERROR }),
       [actionCreatorNamer('data', funcName)]: data => ({ type: DATA, data }),
+      [actionCreatorNamer('error', funcName)]: err => ({ type: ERROR, err }),
     },
     reducer: (state = defaultState, action) => {
       switch (action.type) {
         case LOADING:
           return { ...state, loading: true }
-        case DONE_LOADING:
-          return { ...state, loading: false }
         case ERROR:
-          return { ...state, error: action.err }
-        case REMOVE_ERROR:
-          return { ...state, error: null }
+          return { ...state, error: action.err, loading: false }
         case DATA:
-          return { ...state, data: action.data }
+          return { ...state, data: action.data, error: null, loading: false }
         default:
           return state
       }
@@ -92,8 +83,4 @@ module.exports = {
   socketSubscriber,
   socketAjaxReducer,
   defaultState,
-  requestSocketNamer,
-  isUppercase,
-  uppify,
-  actionCreatorNamer,
 }
