@@ -1,7 +1,7 @@
-export const isUppercase = char =>
+const isUppercase = char =>
   char === char.toUpperCase() && char !== char.toLowerCase()
 
-export const uppify = str =>
+const uppify = str =>
   str
     .split('')
     .map(letter => isUppercase(letter) ?
@@ -10,13 +10,13 @@ export const uppify = str =>
     )
     .join('')
 
-export const actionCreatorNamer = (actionName, functionName) =>
+const actionCreatorNamer = (actionName, functionName) =>
   `${actionName}${functionName[0].toUpperCase()}${functionName.slice(1)}`
 
 const requestSocketNamer = functionName =>
   actionCreatorNamer('request', functionName)
 
-export const defaultState = {
+const defaultState = {
   loading: false,
   error: null,
   data: null,
@@ -67,7 +67,7 @@ const createAjaxReducer = (funcName) => {
   }
 }
 
-export const socketAjaxReducer = (socket, socketName) => {
+const socketAjaxReducer = (socket, socketName) => {
   const ajaxReducer = createAjaxReducer(socketName)
   const socketThunk = {
     thunk: data =>
@@ -91,10 +91,20 @@ export const socketAjaxReducer = (socket, socketName) => {
   }
 }
 
-export const socketSubscriber = store =>
+const socketSubscriber = store =>
   (...socketReducers) =>
     socketReducers.forEach((reducer) => {
       reducer.socketSubscriber(store)
     })
 
-export default createAjaxReducer
+
+module.exports = {
+  createAjaxReducer,
+  socketSubscriber,
+  socketAjaxReducer,
+  defaultState,
+  requestSocketNamer,
+  isUppercase,
+  uppify,
+  actionCreatorNamer,
+}

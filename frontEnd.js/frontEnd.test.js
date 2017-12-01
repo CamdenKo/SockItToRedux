@@ -1,9 +1,10 @@
-import createAjaxReducer, {
+const {
+  createAjaxReducer,
   uppify,
   isUppercase,
   actionCreatorNamer,
   defaultState,
-} from './frontEnd'
+} = require('./frontEnd')
 
 describe('createAjaxReducer', () => {
   describe('helpers', () => {
@@ -37,8 +38,8 @@ describe('createAjaxReducer', () => {
       })
     })
   })
-  const dummyFunc = jest.fn()
-  const result = createAjaxReducer(dummyFunc, 'dummyFunc')
+  // const dummyFunc = jest.fn()
+  const result = createAjaxReducer('dummyFunc')
   it('should return an Object with the keys reducer and actionCreators', () => {
     expect(Object.keys(result)).toContain(...[
       'actionCreators',
@@ -51,6 +52,7 @@ describe('createAjaxReducer', () => {
       'doneLoadingDummyFunc',
       'errorDummyFunc',
       'removeErrorDummyFunc',
+      'dataDummyFunc',
     ])
   })
   it('action creators should have four functions', () => {
