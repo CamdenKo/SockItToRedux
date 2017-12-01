@@ -81,7 +81,7 @@ const socketAjaxReducer = (socket, socketName) => {
         dispatch(ajaxReducer.actionCreators[actionCreatorNamer('data', socketName)](data))
       })
       socket.on(actionCreatorNamer('error', socketName), (err) => {
-        dispatch(ajaxReducer.actionCreators[actionCreatorNamer('error')](err))
+        dispatch(ajaxReducer.actionCreators[actionCreatorNamer('error', socketName)](err))
       })
     },
   }

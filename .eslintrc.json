@@ -15,6 +15,8 @@
     "afterEach": true,
     "it": true,
     "afterAll": true,
-    "document": true
+    "document": true,
+    "window": true,
+    "beforeEach": true
   }
 }

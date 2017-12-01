@@ -1,10 +1,34 @@
+import configureStore from 'redux-mock-store'
+import sinon from 'sinon'
+import io from 'socket.io'
+import clientIO from 'socket.io-client'
+import {
+  SocketIO,
+  Server,
+} from 'mock-socket'
+import thunk from 'redux-thunk'
+
+jest.setTimeout(2000)
+
+import * as frontEnd from './frontEnd'
+
 const {
   createAjaxReducer,
   uppify,
   isUppercase,
   actionCreatorNamer,
   defaultState,
-} = require('./frontEnd')
+  socketAjaxReducer,
+  socketSubscriber,
+} = frontEnd
+
+const newConnection = () => clientIO.connect('http://localhost:5001')
+
+const mockStore = configureStore([
+  thunk,
+])
+const shortTimeout = func => setTimeout(func, 10)
+// window.io = SocketIO
 
 describe('createAjaxReducer', () => {
   describe('helpers', () => {
@@ -95,6 +119,128 @@ describe('createAjaxReducer', () => {
       expect(reducer(alternativeState,
         result.actionCreators[actionCreatorNamer('removeError', 'dummyFunc')](),
       )).toEqual({ ...alternativeState, error: null })
+    })
+  })
+})
+
+describe('socketSubscriber', () => {
+  it('should invoke each reducer\'s socketSubscriber', () => {
+    const mockSocket = {
+      on: () => {},
+    }
+
+    const firstSocket = socketAjaxReducer(mockSocket, 'test')
+    const secondSocket = socketAjaxReducer(mockSocket, 'test2')
+    const store = mockStore({})
+
+    sinon.spy(firstSocket, 'socketSubscriber')
+    sinon.spy(secondSocket, 'socketSubscriber')
+
+    socketSubscriber(store)(firstSocket, secondSocket)
+
+    expect(firstSocket.socketSubscriber.calledOnce).toBeTruthy()
+    expect(secondSocket.socketSubscriber.calledOnce).toBeTruthy()
+  })
+})
+
+describe.only('socketAjaxReducer', () => {
+  const mockServer = io.listen(5001)
+  afterAll((done) => {
+    mockServer.close(done)
+  })
+
+  it('should return an object with the same keys as createAjaxReducer and have thunk and socketSubscriber', () => {
+    const ajax = createAjaxReducer('longPull')
+    const result = socketAjaxReducer({ on: () => {} }, 'pull')
+    expect(Object.keys(result)).toContain(...[
+      ...Object.keys(ajax),
+      'thunk',
+      'socketSubscriber',
+    ])
+  })
+  it('should return a thunk that emits the appropriate socket and dispatches the right action', (done) => {
+    const socket = newConnection()
+    const result = socketAjaxReducer(socket, 'joinRoom')
+    const store = mockStore(defaultState)
+    mockServer.on('connection', (sock) => {
+      sock.on('requestJoinRoom', () => {
+        done()
+      })
+    })
+    socket.on('connect', () => {
+      socketSubscriber(store)(result)
+      store.dispatch(result.thunk())
+      expect(store.getActions()).toEqual([{ type: 'LOADING_JOIN_ROOM' }])
+      socket.disconnect()
+    })
+  })
+  it('should dispatch DATA_JOIN_ROOM when successJoinRoom is emitted', (done) => {
+    const store = mockStore(defaultState)
+    const socket = newConnection()
+    const result = socketAjaxReducer(socket, 'joinRoom')
+    mockServer.on('connection', (sock) => {
+      sock.on('requestJoinRoom', () => {
+        sock.emit('successJoinRoom', 'data')
+        sock.removeAllListeners(['requestJoinRoom'])
+        console.log('FUCK')
+      })
+    })
+    socket.on('connect', () => {
+      socketSubscriber(store)(result)
+      store.dispatch(result.thunk())
+    })
+
+    socket.on('successJoinRoom', () => {
+      shortTimeout(() => {
+        expect(store.getActions()).toEqual([
+          {
+            type: 'LOADING_JOIN_ROOM',
+          },
+          {
+            type: 'DATA_JOIN_ROOM',
+            data: 'data',
+          },
+        ])
+        done()
+        socket.disconnect()
+      })
+    })
+  })
+  it('should dispatch ERROR_JOIN_ROOM when errorJoinRoom is emitted', (done) => {
+    const letMeDone = () => {
+      console.log('done')
+      done()
+    }
+    const store = mockStore(defaultState)
+    const socket = newConnection()
+    const result = socketAjaxReducer(socket, 'joinRoom')
+    mockServer.on('connection', (sock) => {
+      sock.on('requestJoinRoom', () => {
+        sock.emit('errorJoinRoom', 'ouch')
+      })
+    })
+    socket.on('connect', () => {
+      socketSubscriber(store)(result)
+      store.dispatch(result.thunk())
+    })
+
+    socket.on('errorJoinRoom', () => {
+      shortTimeout(() => {
+        console.log(store.getActions())
+        console.log('error join room')
+        expect(store.getActions()).toEqual([
+          {
+            type: 'LOADING_JOIN_ROOM',
+          },
+          {
+            type: 'ERROR_JOIN_ROOM',
+            err: 'ouch',
+          },
+        ])
+        letMeDone()
+        socket.disconnect()
+      })
+      // shortTimeout(done)
     })
   })
 })
