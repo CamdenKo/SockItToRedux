@@ -2,21 +2,16 @@ import configureStore from 'redux-mock-store'
 import sinon from 'sinon'
 import io from 'socket.io'
 import clientIO from 'socket.io-client'
-import {
-  SocketIO,
-  Server,
-} from 'mock-socket'
 import thunk from 'redux-thunk'
+import * as frontEnd from './frontEnd'
+import {
+  actionCreatorNamer,
+} from '../utilities/utilities'
 
 jest.setTimeout(2000)
 
-import * as frontEnd from './frontEnd'
-
 const {
   createAjaxReducer,
-  uppify,
-  isUppercase,
-  actionCreatorNamer,
   defaultState,
   socketAjaxReducer,
   socketSubscriber,
@@ -28,41 +23,8 @@ const mockStore = configureStore([
   thunk,
 ])
 const shortTimeout = func => setTimeout(func, 10)
-// window.io = SocketIO
 
 describe('createAjaxReducer', () => {
-  describe('helpers', () => {
-    describe('uppify', () => {
-      it('works with empty string', () => {
-        expect(uppify('')).toEqual('')
-      })
-      it('works with a string without camelCase', () => {
-        expect(uppify('asdf')).toEqual('ASDF')
-      })
-      it('works with a string with camelCase', () => {
-        expect(uppify('helloWorld')).toEqual('HELLO_WORLD')
-      })
-    })
-    describe('isUppercase', () => {
-      it('returns true for uppercase', () => {
-        expect(isUppercase('A')).toEqual(true)
-      })
-      it('returns false for lowercase', () => {
-        expect(isUppercase('a')).toEqual(false)
-      })
-      it('returns false for numbers and special chars', () => {
-        expect(isUppercase('_')).toEqual(false)
-        expect(isUppercase('2')).toEqual(false)
-      })
-    })
-    describe('actionCreatorNamer', () => {
-      it('combines the actionName to the functionName appropriately', () => {
-        expect(actionCreatorNamer('error', 'changeName')).toEqual('errorChangeName')
-        expect(actionCreatorNamer('successChange', 'eatSocks')).toEqual('successChangeEatSocks')
-      })
-    })
-  })
-  // const dummyFunc = jest.fn()
   const result = createAjaxReducer('dummyFunc')
   it('should return an Object with the keys reducer and actionCreators', () => {
     expect(Object.keys(result)).toContain(...[
