@@ -1,0 +1,15 @@
+{
+  "name": "socketRedux",
+  "version": "1.0.0",
+  "description": "",
+  "main": "frontEnd.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Camden <camdenko@gmail.com> (camdenko.github.io)",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^21.2.1"
+  }
+}

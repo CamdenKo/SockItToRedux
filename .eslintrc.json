@@ -1,0 +1,20 @@
+{
+  "extends": "airbnb",
+  "rules": {
+      "semi":"off",
+      "linebreak-style":"off",
+      "react/jsx-filename-extension": [1, {"extensions": [".js", ".jsx"]}],
+      "react/prop-types": [0],
+      "no-confusing-arrow": "off"
+  },
+  "globals": {
+    "describe": true,
+    "test": true,
+    "expect": true,
+    "jest": true,
+    "afterEach": true,
+    "it": true,
+    "afterAll": true,
+    "document": true
+  }
+}
