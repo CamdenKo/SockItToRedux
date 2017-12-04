@@ -16,9 +16,16 @@ const actionCreatorNamer = (actionName, functionName) =>
 const requestSocketNamer = functionName =>
   actionCreatorNamer('request', functionName)
 
+const socketSubscriber = store =>
+  (...socketReducers) =>
+    socketReducers.forEach((reducer) => {
+      reducer.socketSubscriber(store)
+    })
+
 module.exports = {
   isUppercase,
   uppify,
   actionCreatorNamer,
   requestSocketNamer,
+  socketSubscriber,
 }

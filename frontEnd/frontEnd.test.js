@@ -6,6 +6,7 @@ import thunk from 'redux-thunk'
 import * as frontEnd from './frontEnd'
 import {
   actionCreatorNamer,
+  socketSubscriber,
 } from '../utilities/utilities'
 
 jest.setTimeout(2000)
@@ -14,7 +15,6 @@ const {
   createAjaxReducer,
   defaultState,
   socketAjaxReducer,
-  socketSubscriber,
 } = frontEnd
 
 const newConnection = () => clientIO.connect('http://localhost:5001')

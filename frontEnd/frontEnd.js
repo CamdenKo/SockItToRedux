@@ -71,16 +71,8 @@ const socketAjaxReducer = (socket, socketName) => {
   }
 }
 
-const socketSubscriber = store =>
-  (...socketReducers) =>
-    socketReducers.forEach((reducer) => {
-      reducer.socketSubscriber(store)
-    })
-
-
 module.exports = {
   createAjaxReducer,
-  socketSubscriber,
   socketAjaxReducer,
   defaultState,
 }

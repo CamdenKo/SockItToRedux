@@ -1,16 +1,15 @@
 const {
-  isUppercase,
   uppify,
   actionCreatorNamer,
   requestSocketNamer,
 } = require('../utilities/utilities')
 
 const defaultState = {
-  requestPending: false,
-  requestData: null,
+  pending: false,
+  data: null,
 }
 
-const socketReducerBackEnd = (socket, socketName) => {
+const serverReducer = (server, socketName) => {
   const uppName = uppify(socketName)
   const REQUEST = `REQUEST_${uppName}`
   const REQUEST_FULFILLED = `REQUEST_FULFILLED_${uppName}`
@@ -22,32 +21,36 @@ const socketReducerBackEnd = (socket, socketName) => {
     reducer: (state = defaultState, action) => {
       switch (action.type) {
         case REQUEST:
-          return { ...state, requestPending: true, data: action.data }
+          return { ...state, pending: true, data: action.data }
         case REQUEST_FULFILLED:
-          return { ...state, requestPending: false, data: null }
+          return { ...state, pending: false, data: null }
         default:
           return state
       }
     },
-    success: data =>
+    success: (socket, data) =>
       (dispatch) => {
         socket.emit(actionCreatorNamer('success', socketName), data)
         dispatch(this.actionCreators[actionCreatorNamer('requestFulfilled', socketName)]())
       },
-    error: err =>
+    error: (socket, err) =>
       (dispatch) => {
         socket.emit(actionCreatorNamer('error', socketName), err)
         dispatch(this.actionCreators[actionCreatorNamer('requestFulfilled', socketName)]())
       },
-    socketSubscriber: (store) => {
+    socketSubscriber(store) {
       const { dispatch } = store
-      socket.on(requestSocketNamer(socketName), (data) => {
-        dispatch(this.actionCreators[actionCreatorNamer('request')](data))
+      const outer = this
+      server.on('connection', (socket) => {
+        socket.on(requestSocketNamer(socketName), (data) => {
+          dispatch(outer.actionCreators[actionCreatorNamer('request', socketName)](data))
+        })
       })
     },
   }
 }
 
 module.exports = {
-  socketReducerBackEnd,
+  defaultState,
+  serverReducer,
 }
